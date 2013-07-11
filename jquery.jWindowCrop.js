@@ -39,7 +39,14 @@
 				base.$frame.append(base.$overlay);
 			}
 			base.$frame.append('<div class="jwc_controls" style="display:'+(base.options.showControlsOnStart ? 'block' : 'none')+';"><span>click to drag</span><a href="#" class="jwc_zoom_in"></a><a href="#" class="jwc_zoom_out"></a></div>');
-			base.$frame.css({'overflow': 'hidden', 'position': 'relative', 'width': base.options.targetWidth, 'height': base.options.targetHeight});
+			if (base.options.controlsInset) {
+				base.$frame.css({'overflow': 'hidden', 'position': 'relative', 'width': base.options.targetWidth, 'height': base.options.targetHeight});
+			} else {
+				if (base.$frame.find('.jwc_controls').height())
+					base.$frame.css({'overflow': 'hidden', 'position': 'relative', 'width': base.options.targetWidth+'px', 'height': base.options.targetHeight+base.$frame.find('.jwc_controls').height()})
+				else 
+					base.$frame.css({'overflow': 'hidden', 'position': 'relative', 'width': base.options.targetWidth+'px', 'height': base.options.targetHeight+26})//A default height.
+			}
 			base.$image.css({'position': 'absolute', 'top': '0px', 'left': '0px'});
 
 			base.$frame.find('.jwc_zoom_in').on('click.'+base.namespace, base.zoomIn);
@@ -120,6 +127,10 @@
 				base.originalHeight = base.$image.height();
 			}
 			if(base.originalWidth > 0) {
+				if (base.options.controlsInset) { //Height might not have been set accurately. Try again now.
+					if (base.$frame.find('.jwc_controls').height())
+						base.$frame.css({'overflow': 'hidden', 'position': 'relative', 'width': base.options.targetWidth+'px', 'height': base.options.targetHeight+base.$frame.find('.jwc_controls').height()});
+				}
 				// first calculate the "all the way zoomed out" position
 				// this should always still fill the frame so there's no blank space.
 				// this will be the value you're never allowed to get lower than.
