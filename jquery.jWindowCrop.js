@@ -46,7 +46,11 @@
 			base.$frame.find('.jwc_zoom_out').on('click.'+base.namespace, base.zoomOut);
 			base.$frame.on('mouseenter.'+base.namespace, handleMouseEnter);
 			base.$frame.on('mouseleave.'+base.namespace, handleMouseLeave);
-			base.$image.on('load.'+base.namespace, handeImageLoad);
+			if (base.$image.imagesLoaded) {
+				base.$image.imagesLoaded(handleImageLoad); //Use https://github.com/desandro/imagesloaded if available
+			}else {
+				base.$image.on('load.'+base.namespace, handeImageLoad);
+			}
 			if (base.options.overlayImage) {
 				base.$overlay.on('mousedown.'+base.namespace, handleMouseDown);
 			} else {
