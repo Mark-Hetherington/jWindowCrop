@@ -34,10 +34,10 @@
 			base.$image.addClass('jwc_image').wrap('<div class="jwc_frame" />'); // wrap image in frame
 			base.$frame = base.$image.parent();
 			base.$frame.append($('<span class="jwc_loading_text">').text(base.options.loadingText));
+			base.$frame.append('<div class="jwc_loader">' + base.options.loadingText + '</div>');
 			base.$frame.append('<div class="jwc_controls" style="display:'+(base.options.showControlsOnStart ? 'block' : 'none')+';"><span>click to drag</span><a href="#" class="jwc_zoom_in"></a><a href="#" class="jwc_zoom_out"></a></div>');
 			base.$frame.css({'overflow': 'hidden', 'position': 'relative', 'width': base.options.targetWidth, 'height': base.options.targetHeight});
 			base.$image.css({'position': 'absolute', 'top': '0px', 'left': '0px'});
-			initializeDimensions();
 
 			base.$frame.find('.jwc_zoom_in').on('click.'+base.namespace, base.zoomIn);
 			base.$frame.find('.jwc_zoom_out').on('click.'+base.namespace, base.zoomOut);
@@ -49,6 +49,22 @@
 			$(document).on('mouseup.'+base.namespace, handleMouseUp);
 		};
 
+		base.destroy = function() {
+			base.$image.removeData("jWindowCrop");         // remove data
+			$(document).off('mouseup.'+base.namespace);    // remove body binds
+			$(document).off('mousemove.'+base.namespace);  // remove body binds
+			base.$image.off('mousedown.'+base.namespace);  // remove image binds
+			base.$image.off('load.'+base.namespace);       // remove image binds
+			base.$frame.off('mouseleave.'+base.namespace); // remove frame binds
+			base.$frame.off('mouseenter.'+base.namespace); // remove frame binds
+			base.$frame.find('.jwc_zoom_out').off('click.'+base.namespace); // remove zoom triggers
+			base.$frame.find('.jwc_zoom_in').off('click.'+base.namespace);  // remove zoom triggers
+			$('.jwc_loader').remove();         // remove the added text
+			$('.jwc_controls').remove();       // remove the added controls
+			base.$image.removeAttr( 'style' ); // undo the style
+			base.$image.unwrap();              // undo the wrap
+		};
+		
 		base.setZoom = function(percent) {
 			if(base.minPercent >= 1) {
 				percent = base.minPercent;
