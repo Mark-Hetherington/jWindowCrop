@@ -175,7 +175,7 @@
 					// make sure we notify the onChange function about this...
 					updateResult();
 				}
-
+				base.$frame.find('.jwc_loader').remove();   // remove the added text
 				// now that we've loaded and positioned the image, we can display it
 				base.$image.fadeIn('fast'); 
 			}
