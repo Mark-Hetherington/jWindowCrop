@@ -34,6 +34,10 @@
 			base.$image.addClass('jwc_image').wrap('<div class="jwc_frame" />'); // wrap image in frame
 			base.$frame = base.$image.parent();
 			base.$frame.append('<div class="jwc_loader">' + base.options.loadingText + '</div>');
+			if (base.options.overlayImage) {
+				base.$overlay = $('<img class="jwc_overlay" src="'+ base.options.overlayImage +'" width="'+ base.options.targetWidth +'" height="'+ base.options.targetHeight +'" alt="" />');
+				base.$frame.append(base.$overlay);
+			}
 			base.$frame.append('<div class="jwc_controls" style="display:'+(base.options.showControlsOnStart ? 'block' : 'none')+';"><span>click to drag</span><a href="#" class="jwc_zoom_in"></a><a href="#" class="jwc_zoom_out"></a></div>');
 			base.$frame.css({'overflow': 'hidden', 'position': 'relative', 'width': base.options.targetWidth, 'height': base.options.targetHeight});
 			base.$image.css({'position': 'absolute', 'top': '0px', 'left': '0px'});
@@ -43,7 +47,11 @@
 			base.$frame.on('mouseenter.'+base.namespace, handleMouseEnter);
 			base.$frame.on('mouseleave.'+base.namespace, handleMouseLeave);
 			base.$image.on('load.'+base.namespace, handeImageLoad);
-			base.$image.on('mousedown.'+base.namespace, handleMouseDown);
+			if (base.options.overlayImage) {
+				base.$overlay.on('mousedown.'+base.namespace, handleMouseDown);
+			} else {
+				base.$image.on('mousedown.'+base.namespace, handleMouseDown);
+			}
 			$(document).on('mousemove.'+base.namespace, handleMouseMove);
 			$(document).on('mouseup.'+base.namespace, handleMouseUp);
 		};
@@ -53,6 +61,7 @@
 			$(document).off('mouseup.'+base.namespace);    // remove body binds
 			$(document).off('mousemove.'+base.namespace);  // remove body binds
 			base.$image.off('mousedown.'+base.namespace);  // remove image binds
+			if (base.$overlay) base.$overlay.unbind();     //remove overlay binds
 			base.$image.off('load.'+base.namespace);       // remove image binds
 			base.$frame.off('mouseleave.'+base.namespace); // remove frame binds
 			base.$frame.off('mouseenter.'+base.namespace); // remove frame binds
@@ -213,6 +222,7 @@
 		zoomSteps: 10,
 		loadingText: 'Loading...',
 		smartControls: true,
+		controlsInset:true,
 		showControlsOnStart: true,
 		cropX: null,
 		cropY: null,
