@@ -166,7 +166,10 @@
 				// now if presets x&y have been passed, then we have to slide over 
 				// to the new position after zooming. Why after? because the initial
 				// position might not be valid until after we zoom...
-				if (base.options.cropX!==null && base.options.cropX!=='' && base.options.cropY!==null && base.options.cropY!=='') {
+				if (base.options.cropX!==null && base.options.cropX!==''
+					&& base.options.cropY!==null && base.options.cropY!==''
+					&& base.options.cropW!==null && base.options.cropW!==''
+					&& base.options.cropH!==null && base.options.cropH!=='') {
 					base.$image.css({'left' : (Math.floor(parseInt(base.options.cropX)*base.workingPercent*-1)+'px'), 'top' : (Math.floor(parseInt(base.options.cropY)*base.workingPercent*-1)+'px')});
 					storeFocalPoint();
 					// make sure we notify the onChange function about this...
