@@ -28,7 +28,7 @@
 		
 		base.init = function(){
 			base.$image.css({display:'none'}); // hide image until loaded
-			base.options = $.extend({},$.jWindowCrop.defaultOptions, options);
+			base.options = $.extend(true,{},$.jWindowCrop.defaultOptions, options);
 			if(base.options.zoomSteps < 2) base.options.zoomSteps = 2;
 
 			base.$image.addClass('jwc_image').wrap('<div class="jwc_frame" />'); // wrap image in frame
@@ -38,7 +38,7 @@
 				base.$overlay = $('<img class="jwc_overlay" src="'+ base.options.overlayImage +'" width="'+ base.options.targetWidth +'" height="'+ base.options.targetHeight +'" alt="" />');
 				base.$frame.append(base.$overlay);
 			}
-			base.$frame.append('<div class="jwc_controls" style="display:'+(base.options.showControlsOnStart ? 'block' : 'none')+';"><span>click to drag</span><a href="#" class="jwc_zoom_in"></a><a href="#" class="jwc_zoom_out"></a></div>');
+			base.$frame.append('<div class="jwc_controls" style="display:'+(base.options.showControlsOnStart ? 'block' : 'none')+';"><span class="helptext">' + base.options.helptext + '</span></div>');
 			if (base.options.controlsInset) {
 				base.$frame.css({'overflow': 'hidden', 'position': 'relative', 'width': base.options.targetWidth, 'height': base.options.targetHeight});
 			} else {
@@ -49,14 +49,22 @@
 			}
 			base.$image.css({'position': 'absolute', 'top': '0px', 'left': '0px'});
 
-			base.$frame.find('.jwc_zoom_in').on('click.'+base.namespace, base.zoomIn);
-			base.$frame.find('.jwc_zoom_out').on('click.'+base.namespace, base.zoomOut);
+			//Add custom buttons to default buttons array.
+			$.merge(base.options.buttons,base.options.customButtons);
+			$.each(base.options.buttons,function (i,button){
+				base.$frame.find('.jwc_controls').append('<a href="#" class="'+button.class+'" title="'+button.name+'">' + ((button.content) ? button.content : '')+ '</a>');
+				if (button.function && base[button.function]) { //Bind function to button.
+					base.$frame.find('.'+button.class).on('click.'+base.namespace, base[button.function]);
+				} else if (button.handler){
+					base.$frame.find('.'+button.class).on('click.'+base.namespace,button.handler);
+				}
+			});
 			base.$frame.on('mouseenter.'+base.namespace, handleMouseEnter);
 			base.$frame.on('mouseleave.'+base.namespace, handleMouseLeave);
 			if (base.$image.imagesLoaded) {
 				base.$image.imagesLoaded(handleImageLoad); //Use https://github.com/desandro/imagesloaded if available
 			}else {
-				base.$image.on('load.'+base.namespace, handeImageLoad);
+				base.$image.on('load.'+base.namespace, handleImageLoad);
 			}
 			if (base.options.overlayImage) {
 				base.$overlay.on('mousedown.'+base.namespace, handleMouseDown);
@@ -76,8 +84,9 @@
 			base.$image.off('load.'+base.namespace);       // remove image binds
 			base.$frame.off('mouseleave.'+base.namespace); // remove frame binds
 			base.$frame.off('mouseenter.'+base.namespace); // remove frame binds
-			base.$frame.find('.jwc_zoom_out').off('click.'+base.namespace); // remove zoom triggers
-			base.$frame.find('.jwc_zoom_in').off('click.'+base.namespace);  // remove zoom triggers
+			$.each(base.options.buttons,function (i,button){
+				base.$frame.find('.jwc_controls').unbind();// remove button triggers
+			});
 			$('.jwc_loader').remove();         // remove the added text
 			$('.jwc_controls').remove();       // remove the added controls
 			base.$image.removeAttr( 'style' ); // undo the style
@@ -201,7 +210,7 @@
 			};
 			base.options.onChange.call(base.image, base.result);
 		}
-		function handeImageLoad() {
+		function handleImageLoad() {
 			initializeDimensions();
 		}
 		function handleMouseDown(event) {
@@ -246,7 +255,11 @@
 		cropY: null,
 		cropW: null,
 		cropH: null,
-		onChange: function() {}
+		onChange: function() {},
+		buttons: [{class:'jwc_zoom_in',name:'Zoom In', function:'zoomIn'},{class:'jwc_zoom_out',name:'Zoom Out', function:'zoomOut'}],
+		customButtons:[],
+		helptext:'Click to drag',
+		overlayImage : null
 	};
 	
 	$.fn.jWindowCrop = function(options){
