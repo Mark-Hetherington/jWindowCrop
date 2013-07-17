@@ -61,10 +61,14 @@
 			});
 			base.$frame.on('mouseenter.'+base.namespace, handleMouseEnter);
 			base.$frame.on('mouseleave.'+base.namespace, handleMouseLeave);
-			if (base.$image.imagesLoaded) {
-				base.$image.imagesLoaded(handleImageLoad); //Use https://github.com/desandro/imagesloaded if available
-			}else {
-				base.$image.on('load.'+base.namespace, handleImageLoad);
+			if (base.$image[0].complete) {
+				handleImageLoad();
+			} else {
+				if (base.$image.imagesLoaded) {
+					base.$image.imagesLoaded(handleImageLoad); //Use https://github.com/desandro/imagesloaded if available
+				}else {
+					base.$image.on('load.'+base.namespace, handleImageLoad);
+				}
 			}
 			if (base.options.overlayImage) {
 				base.$overlay.on('mousedown.'+base.namespace, handleMouseDown);
@@ -132,8 +136,8 @@
 
 		function initializeDimensions() {
 			if(base.originalWidth == 0) {
-				base.originalWidth = base.$image.width();
-				base.originalHeight = base.$image.height();
+				base.originalWidth = base.$image[0].naturalWidth ? base.$image[0].naturalWidth : base.$image.width();
+				base.originalHeight = base.$image[0].naturalHeight ? base.$image[0].naturalHeight : base.$image.height();
 			}
 			if(base.originalWidth > 0) {
 				if (base.options.controlsInset) { //Height might not have been set accurately. Try again now.
