@@ -140,7 +140,7 @@
 				base.originalHeight = base.$image[0].naturalHeight ? base.$image[0].naturalHeight : base.$image.height();
 			}
 			if(base.originalWidth > 0) {
-				if (base.options.controlsInset) { //Height might not have been set accurately. Try again now.
+				if (!base.options.controlsInset) { //Height might not have been set accurately. Try again now.
 					if (base.$frame.find('.jwc_controls').height())
 						base.$frame.css({'overflow': 'hidden', 'position': 'relative', 'width': base.options.targetWidth+'px', 'height': base.options.targetHeight+base.$frame.find('.jwc_controls').height()});
 				}
