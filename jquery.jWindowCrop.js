@@ -140,19 +140,29 @@
 				base.originalHeight = base.$image[0].naturalHeight ? base.$image[0].naturalHeight : base.$image.height();
 			}
 			if(base.originalWidth > 0) {
-				if (!base.options.controlsInset) { //Height might not have been set accurately. Try again now.
-					if (base.$frame.find('.jwc_controls').height())
-						base.$frame.css({'overflow': 'hidden', 'position': 'relative', 'width': base.options.targetWidth+'px', 'height': base.options.targetHeight+base.$frame.find('.jwc_controls').height()});
-				}
 				// first calculate the "all the way zoomed out" position
 				// this should always still fill the frame so there's no blank space.
 				// this will be the value you're never allowed to get lower than.
-				var widthRatio = base.options.targetWidth / base.originalWidth;
-				var heightRatio = base.options.targetHeight / base.originalHeight;
+				var widthRatio = (base.options.targetWidth ? base.options.targetWidth : 0) / base.originalWidth; //May not have a targetheight/targetwidth. 
+				var heightRatio = (base.options.targetHeight ? base.options.targetHeight : 0) / base.originalHeight;
 				if(widthRatio >= heightRatio) {
 					base.minPercent = (base.originalWidth < base.options.targetWidth) ? (base.options.targetWidth / base.originalWidth) : widthRatio;
 				} else {
 					base.minPercent = (base.originalHeight < base.options.targetHeight) ? (base.options.targetHeight / base.originalHeight) : heightRatio;
+				}
+				
+				if (!base.options.targetWidth) {
+					base.options.targetWidth = base.minPercent*base.originalWidth;
+					base.$frame.css({'width': base.options.targetWidth});
+				}
+				if (!base.options.targetHeight) {
+					base.options.targetHeight = base.minPercent*base.originalHeight;
+					if (!base.options.controlsInset) { //Height might not have been set accurately. Try again now.
+						if (base.$frame.find('.jwc_controls').height())
+							base.$frame.css({'overflow': 'hidden', 'position': 'relative', 'width': base.options.targetWidth+'px', 'height': base.options.targetHeight+base.$frame.find('.jwc_controls').height()});
+					} else {
+						base.$frame.css({'height': base.options.targetHeight});
+					}
 				}
 
 				// now if they've set initial width and height, calculate the
@@ -248,8 +258,8 @@
 	};
 	
 	$.jWindowCrop.defaultOptions = {
-		targetWidth: 320,
-		targetHeight: 180,
+		/*targetWidth: 320,
+		targetHeight: 180,*/
 		zoomSteps: 10,
 		loadingText: 'Loading...',
 		smartControls: true,
