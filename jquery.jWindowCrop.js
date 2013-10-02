@@ -18,7 +18,9 @@
 		var base = this;
 		base.$image = $(image); // target image jquery element
 		base.originalHeight = base.$image.css('height');
+		base.originalWidthPadding = 0;
 		base.originalWidth = base.$image.css('width');
+		base.originalHeightPadding = 0;
 		base.image = image; // target image dom element
 		base.$image.data("jWindowCrop", base); // target frame jquery element
 
@@ -46,6 +48,9 @@
 					base.$frame.css({'overflow': 'hidden', 'position': 'relative', 'width': base.options.targetWidth+'px', 'height': base.options.targetHeight+base.$frame.find('.jwc_controls').height()})
 				else 
 					base.$frame.css({'overflow': 'hidden', 'position': 'relative', 'width': base.options.targetWidth+'px', 'height': base.options.targetHeight+26})//A default height.
+			}
+			if (base.options.letterBoxColour) {
+				base.$image.css({backgroundColor:base.options.letterBoxColour});
 			}
 			base.$image.css({'position': 'absolute', 'top': '0px', 'left': '0px'});
 
@@ -98,15 +103,16 @@
 		};
 		
 		base.setZoom = function(percent) {
-			if(base.minPercent >= 1) {
+			/*if(base.minPercent >= 1) {
 				percent = base.minPercent;
-			} else if(percent > 1.0) {
+			} else */if(percent > 1.0) {
 				percent = 1;
 			} else if(percent < base.minPercent) {
 				percent = base.minPercent;	
 			}
 			base.$image.width(Math.ceil(base.originalWidth*percent));
 			base.$image.height(Math.ceil(base.originalHeight*percent));
+			base.$image.css({padding:(base.originalHeightPadding*(percent/base.minPercent))+'px '+(base.originalWidthPadding*(percent/base.minPercent))+'px'});
 			base.workingPercent = percent;
 			focusOnCenter();
 			updateResult();
@@ -123,7 +129,9 @@
 		};
 		base.reset = function() {
 			base.originalWidth = 0;
+			base.originalWidthPadding = 0;
 			base.originalHeight = 0;
+			base.originalHeightPadding = 0;
 			base.options.cropX = null;
 			base.options.cropY = null;
 			base.options.cropW = null;
@@ -145,10 +153,14 @@
 				// this will be the value you're never allowed to get lower than.
 				var widthRatio = (base.options.targetWidth ? base.options.targetWidth : 0) / base.originalWidth; //May not have a targetheight/targetwidth. 
 				var heightRatio = (base.options.targetHeight ? base.options.targetHeight : 0) / base.originalHeight;
-				if(widthRatio >= heightRatio) {
+				if(widthRatio <= heightRatio) {
 					base.minPercent = (base.originalWidth < base.options.targetWidth) ? (base.options.targetWidth / base.originalWidth) : widthRatio;
+					//add padding so we can letterbox
+					base.originalHeightPadding = ((base.options.targetHeight -(base.minPercent * base.originalHeight))/2);
 				} else {
 					base.minPercent = (base.originalHeight < base.options.targetHeight) ? (base.options.targetHeight / base.originalHeight) : heightRatio;
+					//add padding so we can letterbox
+					base.originalWidthPadding =((base.options.targetWidth-(base.minPercent * base.originalWidth))/2);
 				}
 				
 				if (!base.options.targetWidth) {
@@ -171,9 +183,9 @@
 					widthRatio = base.options.targetWidth / base.options.cropW;
 					heightRatio = base.options.targetHeight / base.options.cropH;
 					if(widthRatio >= heightRatio) {
-						var cropPercent = (base.originalWidth < base.options.targetWidth) ? (base.options.targetWidth / base.originalWidth) : widthRatio;
+						var cropPercent = (base.originalWidth+(base.originalWidthPadding*2) < base.options.targetWidth) ? (base.options.targetWidth / (base.originalWidth+(base.originalWidthPadding*2))) : widthRatio;
 					} else {
-						var cropPercent = (base.originalHeight < base.options.targetHeight) ? (base.options.targetHeight / base.originalHeight) : heightRatio;
+						var cropPercent = (base.originalHeight+(base.originalHeightPadding*2) < base.options.targetHeight) ? (base.options.targetHeight / (base.originalHeight+(base.originalHeightPadding*2))) : heightRatio;
 					}
 				}
 				// If they didn't specify anything then use the above "all the
@@ -183,7 +195,7 @@
 				}
 
 				// for the initial zoom we'll just jump into the center of the image.
-				base.focalPoint = {'x': Math.round(base.originalWidth/2), 'y': Math.round(base.originalHeight/2)};
+				base.focalPoint = {'x': Math.round((base.originalWidth)/2)+base.originalWidthPadding, 'y': Math.round(base.originalHeight/2)+base.originalHeightPadding};
 				base.setZoom(cropPercent);
 
 				// now if presets x&y have been passed, then we have to slide over 
@@ -209,8 +221,8 @@
 			base.focalPoint = {'x': Math.round(x), 'y': Math.round(y)};
 		}
 		function focusOnCenter() {
-			var left = fillContainer((Math.round((base.focalPoint.x*base.workingPercent) - base.options.targetWidth/2)*-1), base.$image.width(), base.options.targetWidth);
-			var top = fillContainer((Math.round((base.focalPoint.y*base.workingPercent) - base.options.targetHeight/2)*-1), base.$image.height(), base.options.targetHeight);
+			var left = fillContainer((Math.round((base.focalPoint.x*base.workingPercent) - base.options.targetWidth/2)*-1), base.$image.outerWidth(), base.options.targetWidth);
+			var top = fillContainer((Math.round((base.focalPoint.y*base.workingPercent) - base.options.targetHeight/2)*-1), base.$image.outerHeight(), base.options.targetHeight);
 			base.$image.css({'left': (left.toString()+'px'), 'top': (top.toString()+'px')})
 			storeFocalPoint();
 		}
@@ -240,8 +252,8 @@
 			if(base.isDragging) {
 				var xDif = event.pageX - base.dragMouseCoords.x;
 				var yDif = event.pageY - base.dragMouseCoords.y;
-				var newLeft = fillContainer((base.dragImageCoords.x + xDif), base.$image.width(), base.options.targetWidth);
-				var newTop = fillContainer((base.dragImageCoords.y + yDif), base.$image.height(), base.options.targetHeight);
+				var newLeft = fillContainer((base.dragImageCoords.x + xDif), base.$image.outerWidth(), base.options.targetWidth);
+				var newTop = fillContainer((base.dragImageCoords.y + yDif), base.$image.outerHeight(), base.options.targetHeight);
 				base.$image.css({'left' : (newLeft.toString()+'px'), 'top' : (newTop.toString()+'px')});
 				storeFocalPoint();
 				updateResult();
